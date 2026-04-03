@@ -509,8 +509,9 @@ class ACS:
         delta_t_c = self.f_delta_t_c(internal_temperature_su)
         delta_t_a = self.f_delta_t_a(internal_temperature_su)
         # Calibrate and apply temperature and clean water offset corrections
-        c = (self.offset_c - (1 / self.x) * np.log(frame.c_sig / frame.c_ref)) - delta_t_c
-        a = (self.offset_a - (1 / self.x) * np.log(frame.a_sig / frame.a_ref)) - delta_t_a
+        with np.errstate(divide='ignore'):  # c_sig and a_sig can be zero
+            c = (self.offset_c - (1 / self.x) * np.log(frame.c_sig / frame.c_ref)) - delta_t_c
+            a = (self.offset_a - (1 / self.x) * np.log(frame.a_sig / frame.a_ref)) - delta_t_a
         # Pack output in named tuple
         if get_external_temperature:
             return CalibratedFrameContainer(c=c, a=a,
