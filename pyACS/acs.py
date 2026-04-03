@@ -382,7 +382,10 @@ class ACS:
         """
         try:
             # Look for registration bytes
-            i = buffer.index(self.REGISTRATION_BYTES)
+            i = buffer.find(self.REGISTRATION_BYTES)
+            if i == -1:
+                # No registration byte found
+                return bytearray(), False, buffer, bytearray()
             # Take care of special case when checksum + pad byte or just checksum = \xff\x00
             # It's unlikely that the full packet length is equal to \xff\x00 = 65280
             while buffer.find(self.REGISTRATION_BYTES, i + 2, i + 2 + self.REGISTRATION_BYTES_LENGTH) != -1:
@@ -403,9 +406,6 @@ class ACS:
                        buffer[:i+self.REGISTRATION_BYTES_LENGTH]
             # Pad byte is not always present... (only +2 for checksum)
             return frame, True, buffer[frame_end_index + 2:], buffer[:i]
-        except ValueError:
-            # No registration byte found
-            return bytearray(), None, buffer, bytearray()
         except struct_error:
             # Buffer is too short to unpack packet length
             return bytearray(), None, buffer, bytearray()
