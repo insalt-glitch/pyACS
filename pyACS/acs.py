@@ -125,13 +125,12 @@ class CSVWriter:
 
 class ConvertBinToCSV(BinReader):
 
-    def __init__(self, device_filename, bin_filename, csv_filename=None, write_auxiliaries=False):
+    def __init__(self, acs, bin_filename, csv_filename=None, write_auxiliaries=False):
         if not csv_filename:
             csv_filename = bin_filename + '.dat'
         self.calibrate_auxiliaries = write_auxiliaries
         self.counter_good = 0
         self.counter_bad = 0
-        acs = ACSCompass(device_filename)
         self.csv = CSVWriter(acs.lambda_c, acs.lambda_a, write_auxiliaries)
         self.csv.open(csv_filename)
         super(ConvertBinToCSV, self).__init__(acs, bin_filename)
@@ -510,8 +509,9 @@ class ACSCompass:
         delta_t_c = self.f_delta_t_c(internal_temperature_su)
         delta_t_a = self.f_delta_t_a(internal_temperature_su)
         # Calibrate and apply temperature and clean water offset corrections
-        c = (self.offset_c - (1 / self.x) * np.log(frame.c_sig / frame.c_ref)) - delta_t_c
-        a = (self.offset_a - (1 / self.x) * np.log(frame.a_sig / frame.a_ref)) - delta_t_a
+        with np.errstate(divide="ignore"):
+            c = (self.offset_c - (1 / self.x) * np.log(frame.c_sig / frame.c_ref)) - delta_t_c
+            a = (self.offset_a - (1 / self.x) * np.log(frame.a_sig / frame.a_ref)) - delta_t_a
         # Pack output in named tuple
         if get_external_temperature:
             return CalibratedFrameContainer(c=c, a=a,

@@ -395,7 +395,7 @@ class TestACSFunctions(unittest.TestCase):
 
     @unittest.skip("skipping convert bin to csv")
     def test_convert_bin_to_csv(self):
-        from pyACS.acs import ConvertBinToCSV
+        from pyACS.acs import ConvertBinToCSV, ACSCompass
 
         # Find data for test
         test_data_set = [x for x in os.listdir(TEST_COMPASS_DATA) if '_ACS' in x][0]
@@ -406,7 +406,8 @@ class TestACSFunctions(unittest.TestCase):
 
         for write_aux in [True, False]:
             # Run class to test
-            ConvertBinToCSV(device_file, bin_file, os.path.join(TEST_COMPASS_DATA, 'out.csv'), write_auxiliaries=write_aux)
+            acs_parser = ACSCompass(device_file)
+            ConvertBinToCSV(acs_parser, bin_file, os.path.join(TEST_COMPASS_DATA, 'out.csv'), write_auxiliaries=write_aux)
             # Load Result and Truth
             actual_df = pd.read_csv(os.path.join(TEST_COMPASS_DATA, 'out.csv'), delimiter=',')
             actual_df['timestamp'] = actual_df['timestamp'] - actual_df['timestamp'][0]
