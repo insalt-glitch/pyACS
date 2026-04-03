@@ -58,15 +58,15 @@ TEST_COMPASS_DATA = 'test_data/'
 
 class TestACSFunctions(unittest.TestCase):
     def test_compute_external_temperature(self):
-        from pyACS.acs import ACS
-        acs = ACS()
+        from pyACS.acs import ACSCompass
+        acs = ACSCompass()
         counts = unpack('!H', b'\x7a\xe4')[0]
         su = acs.compute_external_temperature(counts)
         self.assertAlmostEqual(su, 22.14, 2)
 
     def test_compute_internal_temperature(self):
-        from pyACS.acs import ACS
-        acs = ACS()
+        from pyACS.acs import ACSCompass
+        acs = ACSCompass()
         # AC-S (from ACS User Manual)
         counts = unpack('!H', b'\xb9\xd8')[0] # 16-bit unsigned integer == H (2 bytes unsigned short)
         su = acs.compute_internal_temperature(counts)
@@ -147,7 +147,7 @@ class TestACSFunctions(unittest.TestCase):
                                      c_sig_dark=np.NaN,  # C signal dark counts
                                      time_stamp=np.NaN)  # unsigned integer: Time stamp (ms)
         # Define ACS
-        acs = pa.ACS()
+        acs = pa.ACSCompass()
         acs.serial_number = '0x5300012A'
         acs.output_wavelength = 3
         acs.t = np.array([27.75, 28.2625])
@@ -181,9 +181,9 @@ class TestACSFunctions(unittest.TestCase):
             self.assertAlmostEqual(float(cal.a[i]), -0.0409, 2)
 
     def test_acs_find_frame(self):
-        from pyACS.acs import ACS
+        from pyACS.acs import ACSCompass
 
-        acs = ACS()
+        acs = ACSCompass()
         acs.output_wavelength = 86
         acs.set_frame_descriptor()
 
@@ -194,9 +194,9 @@ class TestACSFunctions(unittest.TestCase):
         self.assertEqual(skipped, TEST_FRAME[:15])
 
     def test_acs_valid_frame(self):
-        from pyACS.acs import ACS
+        from pyACS.acs import ACSCompass
 
-        acs = ACS()
+        acs = ACSCompass()
         acs.output_wavelength = 86
         acs.set_frame_descriptor()
 
@@ -205,9 +205,9 @@ class TestACSFunctions(unittest.TestCase):
         self.assertEqual(passed, True)
 
     def test_acs_unpack_frame(self):
-        from pyACS.acs import ACS
+        from pyACS.acs import ACSCompass
 
-        acs = ACS()
+        acs = ACSCompass()
         acs.output_wavelength = 86
         acs.set_frame_descriptor()
 
@@ -238,9 +238,9 @@ class TestACSFunctions(unittest.TestCase):
         self.assertEqual(data.a_sig[-1], unpack('!H', b'\x2c\x1c')[0])
 
     def test_acs_check_data(self):
-        from pyACS.acs import BinReader, ACS, FrameLengthError
+        from pyACS.acs import ACSCompass
 
-        acs = ACS()
+        acs = ACSCompass()
         acs.serial_number = '0x53000002'
         acs.output_wavelength = 86
         acs.set_frame_descriptor()
@@ -252,7 +252,7 @@ class TestACSFunctions(unittest.TestCase):
 
     @unittest.skip("skipping Compass Dataset test")
     def test_compass_datasets(self):
-        from pyACS.acs import BinReader, ACS, FrameLengthError, FrameTypeError, SerialNumberError
+        from pyACS.acs import BinReader, ACSCompass, FrameLengthError, FrameTypeError, SerialNumberError
         from tqdm import tqdm
 
         class BinToDataFrame(BinReader):
@@ -352,7 +352,7 @@ class TestACSFunctions(unittest.TestCase):
         for d in tqdm(datasets):
             path_to_dataset = os.path.join(TEST_COMPASS_DATA, d)
             device_filename = [os.path.join(path_to_dataset, f) for f in os.listdir(path_to_dataset) if f.endswith('.dev')][0]
-            reader = BinToDataFrame(ACS(device_filename))
+            reader = BinToDataFrame(ACSCompass(device_filename))
             bin_files = [os.path.join(path_to_dataset, f) for f in os.listdir(path_to_dataset) if f.endswith('.bin')]
             # bin_files = bin_files[:2]  # Only test with 2 first files of each subset (comment line for full test)
             # bin_files = ['test_data/EXPORTS1_ACS298/acs298_20180815201617.bin']
@@ -426,7 +426,7 @@ class TestACSFunctions(unittest.TestCase):
         # ConvertBinToCSV(device_file, bin_file, os.path.join(TEST_COMPASS_DATA, 'out_with_aux.csv'), write_auxiliaries=False)
 
     def test_acs_repr(self):
-        from pyACS.acs import ACS
+        from pyACS.acs import ACSCompass
 
         # Find data for test
         test_data_set = [x for x in os.listdir(TEST_COMPASS_DATA) if '_ACS' in x][0]
@@ -434,7 +434,7 @@ class TestACSFunctions(unittest.TestCase):
         device_file = [os.path.join(path_to_dataset, f) for f in os.listdir(path_to_dataset) if f.endswith('.dev')][0]
 
         # Test function works
-        foo = repr(ACS(device_file))
+        foo = repr(ACSCompass(device_file))
 
 
 def read_prep_acs_output(filename):

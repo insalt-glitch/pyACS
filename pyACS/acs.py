@@ -131,7 +131,7 @@ class ConvertBinToCSV(BinReader):
         self.calibrate_auxiliaries = write_auxiliaries
         self.counter_good = 0
         self.counter_bad = 0
-        acs = ACS(device_filename)
+        acs = ACSCompass(device_filename)
         self.csv = CSVWriter(acs.lambda_c, acs.lambda_a, write_auxiliaries)
         self.csv.open(csv_filename)
         super(ConvertBinToCSV, self).__init__(acs, bin_filename)
@@ -165,7 +165,7 @@ CalibratedFrameContainer = namedtuple('CalibratedFrameContainer',
                                        'flag_outside_calibration_range'])
 
 
-class ACS:
+class ACSCompass:
     """
     Unpack and calibrate ACS and AC9 meters attenuation (c) and absorption (a) engineering values
     (sig, ref counts in binary) to scientific units (1/m).
@@ -525,7 +525,7 @@ class ACS:
                                             flag_outside_calibration_range=flag_outside_calibration_range)
 
 
-class ACSInlinino(ACS):
+class ACSInlinino(ACSCompass):
     def set_frame_descriptor(self):
         super().set_frame_descriptor()
         self.frame_descriptor += "d"
