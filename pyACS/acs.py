@@ -390,14 +390,12 @@ class ACS:
             # Get Length of frame (following 2 bytes, already know it from device file)
             # frame_length = unpack_from('!H', buffer, offset=i + self.REGISTRATION_BYTES_LENGTH)
             frame_end_index = i + self.frame_length
-            # Get frame
+            # Make sure buffer is long enough (incl. 2-byte checksum)
+            if len(buffer) < frame_end_index + 2:
+                return bytearray(), False, buffer, bytearray()
+            # Get frame and checksum
             frame = buffer[i:frame_end_index]
-            if len(frame) != self.frame_length:
-                return bytearray(), None, buffer, bytearray()
-            # Get Checksum
             checksum = buffer[frame_end_index:frame_end_index + 2]
-            if len(checksum) != 2:
-                return bytearray(), None, buffer, bytearray()
             # Check checksum
             if not self.valid_frame(frame, checksum):
                 # Error in frame, remove registration bytes and attempt again
