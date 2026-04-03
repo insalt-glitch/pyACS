@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from datetime import datetime, timezone
 import numpy as np
 from math import log
 from collections import namedtuple
@@ -522,3 +523,63 @@ class ACS:
                                             internal_temperature=internal_temperature_su,
                                             external_temperature=None,
                                             flag_outside_calibration_range=flag_outside_calibration_range)
+
+
+class ACSInlinino(ACS):
+    def set_frame_descriptor(self):
+        super().set_frame_descriptor()
+        self.frame_descriptor += "d"
+        self.frame_length += calcsize("d")
+
+    def find_frame(self, buffer):
+        """
+        Find the first and complete frame from the buffer
+        :param buffer: byte array
+        :return: frame: first frame found
+                 checksum: boolean indicating if valid or invalid frame
+                 buffer_post_frame: buffer left after the frame
+                 buffer_pre_frame: buffer preceding the first frame returned (likely unknown frame header)
+        """
+        # Look for registration bytes
+        i = buffer.find(self.REGISTRATION_BYTES)
+        if i == -1:
+            # No registration byte found
+            return bytearray(), False, buffer, bytearray()
+        # Take care of special case when checksum + pad byte or just checksum = \xff\x00
+        # It's unlikely that the full packet length is equal to \xff\x00 = 65280
+        while buffer.find(self.REGISTRATION_BYTES, i + 2, i + 2 + self.REGISTRATION_BYTES_LENGTH) != -1:
+            i += 2
+        frame_end_index = i + self.frame_length
+        # Make sure the buffer contains the full frame
+        if len(buffer) < frame_end_index:
+            return bytearray(), False, buffer, bytearray()
+        return buffer[i:frame_end_index], True, buffer[frame_end_index:], buffer[:i]
+
+    def unpack_frame(self, frame):
+        """
+        Convert frame from C structs to Python values
+        Assume valid frame
+        :param frame: byte array including registration bytes
+        :return: data: a frame container tuple with python values from the frame
+        """
+        d = unpack_from(self.frame_descriptor, frame, offset=self.REGISTRATION_BYTES_LENGTH)
+        return RawFrameContainer(
+            frame_len=d[0],  # packet length
+            frame_type=d[1],  # packet type identifier
+            # data[] = d[2] # reserved for future use (1)
+            serial_number=hex(d[3]),  # instrument Serial Number (Meter type (first 2 bytes))
+            a_ref_dark=d[4],  # A reference dark counts (for diagnostic purpose)
+            p=d[5],  # A/D counts from the pressure sensor circuitry
+            a_sig_dark=d[6],  # A signal dark counts (for diagnostic purpose)
+            t_ext=d[7],  # External temperature voltage counts
+            t_int=d[8],  # unsigned integer:  Internal temperature voltage counts
+            c_ref_dark=d[9],  # C reference dark counts
+            c_sig_dark=d[10],  # C signal dark counts
+            # data[] = d[12] # reserved for future use
+            output_wavelength=d[13],  # number of output wavelength
+            c_ref=np.array(d[14:-1:4], dtype=np.uint16),
+            a_ref=np.array(d[15:-1:4], dtype=np.uint16),
+            c_sig=np.array(d[16:-1:4], dtype=np.uint16),
+            a_sig=np.array(d[17:-1:4], dtype=np.uint16),
+            time_stamp=datetime.fromtimestamp(d[-1], tz=timezone.utc), # float64: Time stamp (UTC)
+        )
