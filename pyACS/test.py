@@ -137,15 +137,15 @@ class TestACSFunctions(unittest.TestCase):
                                      a_ref=np.array([counts[1],counts[1],counts[1]], dtype=np.uint16),
                                      c_sig=counts[2],
                                      a_sig=np.array([counts[3],counts[3],counts[3]], dtype=np.uint16),
-                                     frame_len=np.NaN,  # packet length
-                                     frame_type=np.NaN,  # Packet type identifier
-                                     a_ref_dark=np.NaN,  # A reference dark counts (for diagnostic purpose)
-                                     p=np.NaN,  # A/D counts from the pressure sensor circuitry
-                                     a_sig_dark=np.NaN,  # A signal dark counts (for diagnostic purpose)
-                                     t_ext=np.NaN,  # External temperature voltage counts
-                                     c_ref_dark=np.NaN,  # C reference dark counts
-                                     c_sig_dark=np.NaN,  # C signal dark counts
-                                     time_stamp=np.NaN)  # unsigned integer: Time stamp (ms)
+                                     frame_len=np.nan,  # packet length
+                                     frame_type=np.nan,  # Packet type identifier
+                                     a_ref_dark=np.nan,  # A reference dark counts (for diagnostic purpose)
+                                     p=np.nan,  # A/D counts from the pressure sensor circuitry
+                                     a_sig_dark=np.nan,  # A signal dark counts (for diagnostic purpose)
+                                     t_ext=np.nan,  # External temperature voltage counts
+                                     c_ref_dark=np.nan,  # C reference dark counts
+                                     c_sig_dark=np.nan,  # C signal dark counts
+                                     time_stamp=np.nan)  # unsigned integer: Time stamp (ms)
         # Define ACS
         acs = pa.ACSCompass()
         acs.serial_number = '0x5300012A'
